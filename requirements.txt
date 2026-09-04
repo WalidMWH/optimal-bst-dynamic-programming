@@ -1,0 +1,5 @@
+# Core program has no third-party dependencies and runs on stock Python 3.10+.
+# The following are needed only for the complexity plot and the test suite.
+
+matplotlib>=3.8
+pytest>=8.0
