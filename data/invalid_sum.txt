@@ -1,0 +1,5 @@
+# Probabilities sum to 0.90, not 1.00
+3
+10 0.30
+20 0.30
+30 0.30

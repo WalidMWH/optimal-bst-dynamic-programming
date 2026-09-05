@@ -1,0 +1,7 @@
+# Assignment example: five keys, expected optimal cost 1.80
+5
+10 0.10
+20 0.20
+30 0.40
+40 0.20
+50 0.10

@@ -1,0 +1,5 @@
+# Second probability is negative
+3
+10 0.60
+20 -0.10
+30 0.50

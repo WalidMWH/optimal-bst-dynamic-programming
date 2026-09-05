@@ -1,0 +1,5 @@
+# Three-key case, expected optimal cost 1.50
+3
+10 0.2
+20 0.5
+30 0.3

@@ -1,0 +1,5 @@
+# Line 4 has three fields instead of two
+3
+10 0.30
+20 0.40 extra
+30 0.30
