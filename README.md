@@ -1,165 +1,94 @@
-# Optimal Binary Search Tree
+# Optimal Binary Search Tree using Dynamic Programming
+*CMP3005 - Analysis Of Algorithms - Course Project*
 
-A dynamic programming implementation that builds the binary search tree
-minimizing expected search cost, given sorted keys and their access
-probabilities.
+**Done By:** WALID M. W. KOBAHALABI - 2477317  
+**Instructor:** Dr. MD IMRAN HOSEN  
+**University:** Bahçeşehir Üniversitesi
 
-## Problem
+> **Academic Integrity Notice**  
+> This repository is coursework submitted for CMP3005 at Bahçeşehir
+> Üniversitesi. It is published for reference and learning. If you are taking
+> this or a similar course, do not submit any part of this work as your own,
+> doing so is plagiarism under your institution's academic integrity policy.
 
-A binary search tree can be arranged in many ways over the same set of keys.
-When some keys are searched more often than others, the arrangement changes how
-many comparisons an average search needs.
+## Project Overview
 
-For keys `k₁ … kₙ` with access probabilities `p₁ … pₙ`, the expected search cost
-is
+Design and implement an Optimal Binary Search Tree (OBST) using Dynamic
+Programming. Given a set of sorted keys and their corresponding
+successful-search probabilities, the program constructs the Binary Search Tree
+that minimizes the expected number of comparisons required to search for a key.
 
-```
-E = Σ pᵢ × depth(kᵢ)          (root at depth 1)
-```
+The program formulates the problem as a set of overlapping subproblems,
+constructs the Dynamic Programming tables, determines the minimum expected
+search cost, and reconstructs the resulting optimal binary search tree.
 
-The probabilities are fixed by the input, so the depths are the only thing under
-our control. The task is to find the tree shape that minimizes `E`.
+## Dynamic Programming Formulation
 
-Exhaustive search is not viable: the number of distinct BSTs on `n` keys is the
-Catalan number `Cₙ`, which is 42 for `n = 5` and roughly 6.56 billion for
-`n = 20`. Dynamic programming solves `n = 20` in 1,540 inner operations.
+Let the sorted keys be K = {k₁, k₂, …, kₙ} and let pᵢ be the successful-search
+probability associated with key kᵢ.
 
-## Algorithm
-
-**State.** `C[i][j]` is the minimum expected cost of an optimal BST over keys
-`kᵢ … kⱼ`, with depth measured relative to that subtree's own root.
-
-**Recurrence.**
+C[i,j] = minimum expected search cost for keys kᵢ through kⱼ
 
 ```
-C[i][j] = min over r in [i..j] of { C[i][r-1] + C[r+1][j] } + W(i, j)
-
-W(i, j) = pᵢ + … + pⱼ
+C[i,j] = min { C[i,k-1] + C[k+1,j] } + Σ ps     for 1 ≤ i ≤ j ≤ n
+C[i,i] = pᵢ
 ```
 
-**Base case.** `C[i][j] = 0` when `i > j`. The single-key case `C[i][i] = pᵢ`
-follows from it.
+The summation term is added because when a subtree is placed one level deeper,
+every key in that subtree requires one additional comparison.
 
-The `W(i, j)` term appears because choosing `r` as root pushes every key in the
-interval one level deeper relative to its position within its own subtree, so
-each contributes one extra comparison weighted by its probability.
-
-`W(i, j)` is evaluated in O(1) from a precomputed prefix-sum array. Computing it
-inside the innermost loop would make the algorithm O(n⁴).
-
-**Complexity.** Time O(n³), space O(n²). There are Θ(n²) subproblems and each
-tries up to O(n) roots; the exact inner-loop count is `n(n+1)(n+2)/6`.
-
-## Results
-
-On the five-key example — keys 10 to 50 with probabilities 0.10, 0.20, 0.40,
-0.20, 0.10 — the optimal tree costs **1.80** expected comparisons:
-
-```
-        30
-       /  \
-     20    40
-    /        \
-  10          50
-```
-
-Compared against two conventional trees built from the same keys:
-
-| Tree | Expected cost | Average depth | Height |
-|---|---|---|---|
-| Sequential insertion (sorted order) | 3.00 | 3.00 | 5 |
-| Balanced (recursive midpoint) | 1.90 | 2.20 | 3 |
-| **Optimal (this implementation)** | **1.80** | 2.20 | 3 |
-
-The balanced tree and the optimal tree have the same height and the same
-average depth — their depth multisets are both {1, 2, 2, 3, 3}. The entire
-improvement comes from *which* key occupies each depth. A balanced tree cannot
-see the probabilities, so it places key 10 (p = 0.10) above key 20 (p = 0.20);
-the DP swaps them.
-
-### Measured running time
-
-Mean over 5 random instances per size, timing the DP table fill alone:
-
-| n | Mean time (s) | Inner loop count | µs per operation |
-|---:|---:|---:|---:|
-| 5 | 0.000008 | 35 | 0.243 |
-| 10 | 0.000024 | 220 | 0.109 |
-| 20 | 0.000113 | 1,540 | 0.074 |
-| 50 | 0.001168 | 22,100 | 0.053 |
-| 100 | 0.008437 | 171,700 | 0.049 |
-| 200 | 0.061855 | 1,353,400 | 0.046 |
-| 400 | 0.550207 | 10,746,800 | 0.051 |
-
-The cost per inner-loop operation converges to roughly 0.05 µs, which is what
-O(n³) predicts: total time is the operation count times a constant. Doubling n
-from 200 to 400 multiplied the time by 8.9, against the 8.0 a cubic predicts.
-
-A least-squares fit of log(time) against log(n) gives an exponent of **2.57**
-across all sizes and **2.84** across n ≥ 20. The two differ because at n = 5 the
-DP performs only 35 operations while fixed interpreter overhead costs a
-comparable amount; that overhead is roughly constant in n, so it inflates the
-smallest measurements and flattens the fit. The estimate rises toward 3 as the
-smallest sizes are dropped.
-
-![Running time against n](results/complexity.png)
+Standard OBST Dynamic Programming: Time = O(n³), Space = O(n²)
 
 ## Requirements
 
 Python 3.10 or newer. The core program uses only the standard library.
 
-`matplotlib` is needed only to render the complexity plot, and `pytest` only to
-run the test suite:
+`matplotlib` is needed only for the complexity plot and `pytest` only for the
+test suite:
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
-## Usage
+## How to Run
 
-Run the assignment's example with no arguments:
+The program is run from the project root directory. With no arguments it uses
+the example input from the project description:
 
-```bash
+```
 python main.py
 ```
 
-Read a problem from a file, and compare against conventional trees:
+Other options:
 
-```bash
-python main.py --file data/example5.txt --compare
-```
-
-All options:
-
-| Option | Effect |
+| Command | Description |
 |---|---|
-| `--file PATH` | Read the problem from a file |
-| `--interactive` | Prompt for keys and probabilities on stdin |
-| `--random N` | Generate N keys with random probabilities |
-| `--seed S` | Seed for `--random` (default 42) |
-| `--compare` | Also build and compare the conventional trees |
-| `--no-tables` | Suppress the cost and root tables |
+| `python main.py --file data/example5.txt` | Read the input from a file |
+| `python main.py --interactive` | Enter the input manually |
+| `python main.py --random 20` | Generate 20 random keys |
+| `python main.py --compare` | Also compare with a conventional BST |
+| `python main.py --no-tables` | Hide the cost and root tables |
 
-The DP tables are suppressed automatically above n = 15, where they no longer
-fit a terminal.
+To run the experimental analysis for multiple input sizes:
 
-Reproduce the timing experiments:
-
-```bash
+```
 python experiments.py
 ```
 
-This writes `results/timings.csv` and `results/complexity.png`. The default run
-takes about 30 seconds, most of it at n = 400.
+This writes `results/timings.csv` and `results/complexity.png`.
 
-## Input format
+## How to Provide Input
 
-A plain text file. Blank lines are ignored, and so is any line whose first
-non-space character is `#`. The first remaining line is the number of keys;
-each following line holds a key and its probability, separated by whitespace.
+The program accepts the number of keys n, the n sorted keys, and the
+successful-search probability for each key. The probabilities must be
+non-negative and must sum to 1, allowing for minor floating-point rounding.
+
+Input files are plain text. Lines beginning with `#` and blank lines are
+ignored. The first line is the number of keys, and each following line holds a
+key and its probability:
 
 ```
-# Assignment example: five keys, expected optimal cost 1.80
+# Example input from the project description
 5
 10 0.10
 20 0.20
@@ -168,48 +97,139 @@ each following line holds a key and its probability, separated by whitespace.
 50 0.10
 ```
 
-Keys must be integers in strictly increasing order. Probabilities must be
-non-negative and sum to 1 within a tolerance of 1e-6. Invalid input produces a
-single error message naming the fault and exits with status 1:
+Invalid input is handled with an error message instead of a crash:
 
 ```
 $ python main.py --file data/invalid_sum.txt
 Error: probabilities must sum to 1, they sum to 0.9 (tolerance 1e-06)
 ```
 
-The `data/` directory holds three valid examples and four deliberately broken
-ones covering each validation path.
+The `data/` folder contains three valid sample inputs and four invalid ones.
+
+## Sample Output
+
+Running `python main.py` with the example input:
+
+```
+=== 1. input ===
+  index       key    probability
+--------------------------------
+      1        10       0.100000
+      2        20       0.200000
+      3        30       0.400000
+      4        40       0.200000
+      5        50       0.100000
+--------------------------------
+              sum       1.000000
+
+=== 2. cost table C[i][j] ===
+              1        2        3        4        5
+      ---------------------------------------------
+   1 |   0.1000   0.4000   1.1000   1.5000   1.8000
+   2 |            0.2000   0.8000   1.2000   1.5000
+   3 |                     0.4000   0.8000   1.1000
+   4 |                              0.2000   0.4000
+   5 |                                       0.1000
+
+=== 3. root table root[i][j] ===
+           1     2     3     4     5
+      ------------------------------
+   1 |     1     2     3     3     3
+   2 |           2     3     3     3
+   3 |                 3     3     3
+   4 |                       4     4
+   5 |                             5
+
+=== 4. minimum expected search cost ===
+C[1][5] = 1.800000
+
+=== 5. optimal tree (right subtree above the node, left below) ===
+        /-- 50
+    /-- 40
+30
+    \-- 20
+        \-- 10
+
+=== 6. depth of each key ===
+     key    probability   depth    prob x depth
+-----------------------------------------------
+      10       0.100000       3        0.300000
+      20       0.200000       2        0.400000
+      30       0.400000       1        0.400000
+      40       0.200000       2        0.400000
+      50       0.100000       3        0.300000
+
+=== 7. verification against the reconstructed tree ===
+cost from the tree       = 1.8000000000
+C[1][5] from the table   = 1.8000000000
+absolute difference      = 2.22e-16
+agree within 1e-9        : yes
+
+=== 8. execution time ===
+DP table fill         = 0.000014 s
+tree reconstruction   = 0.000008 s
+total                 = 0.000021 s
+```
+
+## Comparison with a Conventional BST
+
+Running `python main.py --compare` also builds two conventional trees over the
+same keys:
+
+| Tree | Expected cost | Average depth | Height |
+|---|---|---|---|
+| Sequential insertion | 3.0000 | 3.0000 | 5 |
+| Balanced | 1.9000 | 2.2000 | 3 |
+| Optimal BST | 1.8000 | 2.2000 | 3 |
+
+## Experimental Results
+
+Running `python experiments.py` times the DP table fill over several input
+sizes, averaged across 5 random instances per size:
+
+| Number of Keys (n) | Execution Time (s) | Inner Loop Count |
+|---:|---:|---:|
+| 5 | 0.000008 | 35 |
+| 10 | 0.000024 | 220 |
+| 20 | 0.000113 | 1,540 |
+| 50 | 0.001168 | 22,100 |
+| 100 | 0.008437 | 171,700 |
+| 200 | 0.061855 | 1,353,400 |
+| 400 | 0.550207 | 10,746,800 |
+
+The inner loop count is n(n+1)(n+2)/6, the exact number of candidate roots the
+algorithm evaluates. Doubling n from 200 to 400 multiplied the execution time
+by 8.9, close to the factor of 8 that cubic growth predicts.
+
+![Execution time against n](results/complexity.png)
+
+The measured times are plotted on logarithmic axes against a reference line
+proportional to n³. The two curves run together for the larger input sizes,
+while the smallest sizes sit above the reference because their execution time
+is dominated by fixed overhead rather than by the algorithm itself. The results
+are discussed further in the report.
 
 ## Testing
 
-```bash
+```
 pytest tests/
 ```
 
-185 tests covering: the hand-computed cost and root tables for the three- and
-five-key cases, cell by cell; edge cases including a single key and a key
-carrying all the probability; prefix-sum correctness; validation and parsing
-errors; and the properties of the conventional baselines.
+185 tests covering the DP tables, the tree reconstruction, the input
+validation, and the conventional BST baselines.
 
-Two groups are worth singling out. The property tests re-derive the expected
-cost by walking the reconstructed tree and check it against C[1][n] for random
-instances up to n = 30, confirming that the tree and the table agree without
-either being told the answer. The brute-force tests enumerate every binary
-search tree over n ≤ 7 keys — 429 distinct shapes at n = 7 — and confirm the DP
-finds the same minimum.
-
-## Project structure
+## Project Structure
 
 ```
-main.py              CLI entry point
-experiments.py       timing harness and complexity plot
-src/obst.py          DP cost and root tables
-src/tree.py          tree reconstruction, depths, cost verification
+main.py              program entry point
+experiments.py       execution time experiments
+src/obst.py          DP cost table and root table
+src/tree.py          tree reconstruction and cost verification
 src/baseline.py      conventional BSTs for comparison
-src/validation.py    input parsing and validation
-tests/               pytest suite
-data/                sample and invalid inputs
-results/             timing data and plots
+src/validation.py    input reading and validation
+tests/               test suite
+data/                sample input files
+results/             experimental results
 docs/                project report
 ```
 
