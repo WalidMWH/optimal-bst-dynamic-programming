@@ -1,29 +1,23 @@
-"""Command-line entry point for the optimal binary search tree project.
-
-Reads the problem from a file, a prompt, a random generator or the built-in
-example, runs the DP from obst.py, rebuilds the tree with tree.py and prints
-every output the assignment asks for in order; --compare adds the conventional
-trees from baseline.py. Invalid input exits with status 1 and one error line.
-"""
+# Command-line entry point:
+# Reads the input, executes the dynamic programming algorithm, reconstructs the optimal tree, and reports the required outputs
 
 import argparse
 import sys
 import time
 from pathlib import Path
 
-# The modules in src/ import each other by plain module name so that each one
-# stays runnable on its own, so src/ has to be on the path before they load.
+# The modules in src/ import each other by plain name, so src/ must be on the path first
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from baseline import compare_trees  # noqa: E402
-from obst import build_dp_tables  # noqa: E402
-from tree import (  # noqa: E402
+from obst import build_dp_tables    # noqa: E402
+from tree import (                  # noqa: E402
     build_tree,
     collect_depths,
     expected_cost_from_tree,
     render_tree,
 )
-from validation import (  # noqa: E402
+from validation import (            # noqa: E402
     InvalidInputError,
     generate_random,
     load_from_file,
@@ -33,13 +27,11 @@ from validation import (  # noqa: E402
 
 MAX_TABLE_KEYS = 15
 
-
+# Configures the application to accept the required inputs: number of keys, sorted keys, and probabilities
 def build_argument_parser() -> argparse.ArgumentParser:
-    """Define the command-line interface."""
     parser = argparse.ArgumentParser(
         description="Build the optimal binary search tree for a set of sorted keys."
     )
-
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--file", metavar="PATH", help="read the input from a file")
     source.add_argument(
@@ -48,10 +40,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
     source.add_argument(
         "--random", type=int, metavar="N", help="generate N random keys"
     )
-
     parser.add_argument(
         "--seed", type=int, default=42, help="seed used by --random (default 42)"
     )
+    # Triggers the requirement to construct a conventional BST and compare it with the Optimal BST
     parser.add_argument(
         "--compare",
         action="store_true",
@@ -62,9 +54,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     return parser
 
-
+# Loads the provided input to compute the result from the supplied keys and successful-search probabilities
 def load_input(args: argparse.Namespace) -> tuple[list[int], list[float]]:
-    """Build the padded key and probability lists from whichever source was chosen."""
     if args.file is not None:
         return load_from_file(args.file)
     if args.interactive:
@@ -72,20 +63,19 @@ def load_input(args: argparse.Namespace) -> tuple[list[int], list[float]]:
     if args.random is not None:
         return generate_random(args.random, args.seed)
 
-    # No source given: the worked example from the assignment.
+    # Uses the example input provided in the project file
     keys = [0, 10, 20, 30, 40, 50]
     probabilities = [0.0, 0.10, 0.20, 0.40, 0.20, 0.10]
     validate(keys, probabilities)
     return keys, probabilities
 
-
+# Displays the Dynamic Programming cost table and the root table as required for the project report
 def render_upper_triangle(
     table: list[list[float]] | list[list[int]],
     n: int,
     width: int,
     is_float: bool,
 ) -> list[str]:
-    """Render the i <= j half of a DP table with 1-based row and column headers."""
     label_width = 6
     lines = [
         " " * label_width + "".join(f"{j:>{width}}" for j in range(1, n + 1)),
@@ -103,9 +93,8 @@ def render_upper_triangle(
         lines.append(f"{i:>4} |" + "".join(cells))
     return lines
 
-
+# Reports the input keys alongside their corresponding probabilities
 def print_input_table(keys: list[int], probabilities: list[float], n: int) -> None:
-    """Print the input keys with their probabilities and the total."""
     header = f"{'index':>7}{'key':>10}{'probability':>15}"
     print(header)
     print("-" * len(header))
@@ -114,14 +103,13 @@ def print_input_table(keys: list[int], probabilities: list[float], n: int) -> No
     print("-" * len(header))
     print(f"{'sum':>17}{sum(probabilities[1:]):>15.6f}")
 
-
+# Displays the level/depth of each key in the resulting tree
 def print_depth_table(
     keys: list[int],
     probabilities: list[float],
     depths: dict[int, int],
     n: int,
 ) -> None:
-    """Print each key with its probability, its depth and their product."""
     header = f"{'key':>8}{'probability':>15}{'depth':>8}{'prob x depth':>16}"
     print(header)
     print("-" * len(header))
@@ -132,9 +120,8 @@ def print_depth_table(
             f"{probabilities[i] * depth:>16.6f}"
         )
 
-
+# Outputs the experimental comparison between the Optimal BST and conventional BSTs, highlighting expected search cost and average depth
 def print_comparison(keys: list[int], probabilities: list[float]) -> None:
-    """Print the three trees and how the optimal one compares against the baselines."""
     results = compare_trees(keys, probabilities)
     order = ("optimal", "sequential", "balanced")
 
@@ -168,9 +155,8 @@ def print_comparison(keys: list[int], probabilities: list[float]) -> None:
             f"  ->{improvement:>7.2f}% lower expected cost"
         )
 
-
+# Coordinates the algorithm execution and formats all required outputs for the report submission
 def run(args: argparse.Namespace) -> None:
-    """Produce every section of the assignment's output for one problem instance."""
     keys, probabilities = load_input(args)
     n = len(keys) - 1
 
@@ -186,7 +172,6 @@ def run(args: argparse.Namespace) -> None:
     print_input_table(keys, probabilities, n)
     print()
 
-    # Wide tables wrap and become unreadable, so they are dropped past a point.
     auto_suppressed = n > MAX_TABLE_KEYS
     if args.no_tables:
         print("=== 2-3. cost and root tables ===")
@@ -234,6 +219,7 @@ def run(args: argparse.Namespace) -> None:
     print(f"{'agree within 1e-9':<25}: {'yes' if difference < 1e-9 else 'NO'}")
     print()
 
+    # Records and outputs execution time to support experimental analysis of varying input sizes
     print("=== 8. execution time ===")
     print(f"{'DP table fill':<22}= {dp_seconds:.6f} s")
     print(f"{'tree reconstruction':<22}= {build_seconds:.6f} s")
@@ -244,9 +230,8 @@ def run(args: argparse.Namespace) -> None:
         print("=== 9. comparison with conventional binary search trees ===")
         print_comparison(keys, probabilities)
 
-
+# Ensures invalid inputs (such as probabilities that do not sum to 1) are handled appropriately
 def main(argv: list[str] | None = None) -> int:
-    """Run the program, turning invalid input into one error line and status 1."""
     args = build_argument_parser().parse_args(argv)
 
     try:
@@ -256,7 +241,6 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

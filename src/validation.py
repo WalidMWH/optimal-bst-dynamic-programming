@@ -1,36 +1,32 @@
-"""Input parsing and validation for the optimal binary search tree program.
-
-Everything here runs before the DP: the two padded lists must match in length,
-the keys must be strictly increasing, and the probabilities must be non-negative
-and sum to 1 within a small tolerance. Input comes from a file, an interactive
-prompt or a seeded random generator, and any fault raises InvalidInputError.
-"""
+# Handles invalid inputs appropriately and ensures the program accepts the number of:
+# keys n, sorted keys, and their successful-search probabilities
 
 import random
 
 DEFAULT_TOLERANCE = 1e-6
 
-
+# Custom exception to handle invalid inputs appropriately instead of crashing
 class InvalidInputError(ValueError):
-    """Raised for any malformed or inconsistent problem input."""
+    pass
 
-
+# Validates that keys are sorted and probabilities are non-negative and sum to 1
+# Allowing for minor floating-point rounding
 def validate(
     keys: list[int],
     probabilities: list[float],
     tolerance: float = DEFAULT_TOLERANCE,
 ) -> None:
-    """Raise InvalidInputError naming the first fault in the padded input lists."""
     if len(keys) != len(probabilities):
         raise InvalidInputError(
             f"key list and probability list differ in length: "
             f"{len(keys)} against {len(probabilities)}"
         )
 
-    n = len(keys) - 1  # index 0 is padding, not a key
+    n = len(keys) - 1  # index 0 is padding not a key
     if n < 1:
         raise InvalidInputError(f"at least one key is required, got n = {n}")
 
+    # Validates that the program is given a set of sorted keys
     for i in range(1, n):
         if keys[i] == keys[i + 1]:
             raise InvalidInputError(
@@ -42,12 +38,14 @@ def validate(
                 f"key {i + 1} = {keys[i + 1]}"
             )
 
+    # Validates that probabilities are non-negative
     for i in range(1, n + 1):
         if probabilities[i] < 0:
             raise InvalidInputError(
                 f"probability of key {keys[i]} is negative: {probabilities[i]}"
             )
 
+    # Validates that probabilities sum to 1, allowing for minor floating-point rounding
     total = sum(probabilities[1:])
     if abs(total - 1.0) > tolerance:
         raise InvalidInputError(
@@ -55,11 +53,8 @@ def validate(
             f"(tolerance {tolerance:g})"
         )
 
-
+# Parses text data to extract the number of keys n, sorted keys, and the successful-search probability for each key
 def parse_lines(lines: list[str]) -> tuple[list[int], list[float]]:
-    """Parse the text input format into padded lists and validate them."""
-    # Original line numbers are kept alongside the text so errors can point at
-    # the offending line even though blanks and comments are dropped here.
     numbered = [
         (number, line.strip())
         for number, line in enumerate(lines, start=1)
@@ -120,9 +115,8 @@ def parse_lines(lines: list[str]) -> tuple[list[int], list[float]]:
     validate(keys, probabilities)
     return keys, probabilities
 
-
+# Reads input requirements from a provided file to compute the result from the supplied input
 def load_from_file(path: str) -> tuple[list[int], list[float]]:
-    """Read an input file and parse it, reporting read failures as input errors."""
     try:
         with open(path, "r", encoding="utf-8") as handle:
             lines = handle.readlines()
@@ -132,16 +126,14 @@ def load_from_file(path: str) -> tuple[list[int], list[float]]:
 
     return parse_lines(lines)
 
-
 def _prompt(message: str) -> str:
     try:
         return input(message)
     except EOFError:
         raise InvalidInputError("input ended before all keys were entered") from None
 
-
+# Interactively accepts the number of keys n, sorted keys, and probabilities from the user
 def read_interactive() -> tuple[list[int], list[float]]:
-    """Prompt for the keys and probabilities on stdin, reprompting on a bad entry."""
     while True:
         text = _prompt("number of keys: ").strip()
         try:
@@ -172,20 +164,15 @@ def read_interactive() -> tuple[list[int], list[float]]:
             probabilities.append(probability)
             break
 
-    # Ordering and the probability sum can only be judged once everything is in,
-    # so those faults are raised rather than reprompted.
     validate(keys, probabilities)
     return keys, probabilities
 
-
+# Generates random valid inputs to easily test the implementation with several values of n for experimental analysis
 def generate_random(n: int, seed: int | None = None) -> tuple[list[int], list[float]]:
-    """Generate n evenly spaced keys with random probabilities summing to 1."""
     if n < 1:
         raise InvalidInputError(f"at least one key is required, got n = {n}")
 
     generator = random.Random(seed)
-    # random() can return exactly 0.0; the shift keeps every key reachable with
-    # a non-zero probability.
     epsilon = 1e-9
     weights = [generator.random() + epsilon for _ in range(n)]
     total = sum(weights)
