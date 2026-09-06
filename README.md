@@ -13,6 +13,8 @@
 
 📄 **[Project Report (PDF)](docs/2477317_CMP3005_OBST_Using_DP_Project_Report.pdf)**
 
+🎤 **[Project Presentation (PPTX)](docs/2477317_CMP3005_OBST_Using_DP_Project_Presentation.pptx)**
+
 ## Project Overview
 
 Design and implement an Optimal Binary Search Tree (OBST) using Dynamic
