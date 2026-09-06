@@ -11,6 +11,8 @@
 > this or a similar course, do not submit any part of this work as your own,
 > doing so is plagiarism under your institution's academic integrity policy.
 
+📄 **[Project Report (PDF)](docs/2477317_CMP3005_OBST_Using_DP_Project_Report.pdf)**
+
 ## Project Overview
 
 Design and implement an Optimal Binary Search Tree (OBST) using Dynamic
@@ -229,8 +231,8 @@ src/baseline.py      conventional BSTs for comparison
 src/validation.py    input reading and validation
 tests/               test suite
 data/                sample input files
-results/             experimental results
-docs/                project report
+results/             experimental results and sample output
+docs/                project report (PDF)
 ```
 
 ## License
